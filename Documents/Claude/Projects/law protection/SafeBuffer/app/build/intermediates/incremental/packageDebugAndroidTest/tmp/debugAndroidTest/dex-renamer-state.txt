@@ -1,0 +1,4 @@
+#Thu Sep 10 23:49:48 KST 2026
+base.0=C\:\\Users\\joshua\\Documents\\Claude\\Projects\\law protection\\SafeBuffer\\app\\build\\intermediates\\dex\\debugAndroidTest\\mergeProjectDexDebugAndroidTest\\0\\classes.dex
+path.0=0/classes.dex
+renamed.0=classes.dex

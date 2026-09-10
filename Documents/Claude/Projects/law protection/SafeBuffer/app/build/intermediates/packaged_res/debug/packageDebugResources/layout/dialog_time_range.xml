@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="#161622">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="확인할 대화 구간"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="20dp" />
+
+    <!-- 날짜 선택 칩 -->
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chipGroupDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:singleSelection="true"
+        app:selectionRequired="true"
+        android:layout_marginBottom="24dp">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipToday"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="오늘"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:textColor="#FFFFFF"
+            app:chipBackgroundColor="@android:color/transparent"
+            app:chipStrokeColor="#5577CC"
+            app:chipStrokeWidth="1dp"
+            android:checked="true" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipYesterday"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="어제"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:textColor="#FFFFFF"
+            app:chipBackgroundColor="@android:color/transparent"
+            app:chipStrokeColor="#5577CC"
+            app:chipStrokeWidth="1dp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipDayBefore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="그제"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:textColor="#FFFFFF"
+            app:chipBackgroundColor="@android:color/transparent"
+            app:chipStrokeColor="#5577CC"
+            app:chipStrokeWidth="1dp" />
+
+    </com.google.android.material.chip.ChipGroup>
+
+    <!-- 시작 시간 -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="시작"
+        android:textSize="12sp"
+        android:textColor="#5566AA"
+        android:textStyle="bold"
+        android:letterSpacing="0.1"
+        android:layout_marginBottom="6dp" />
+
+    <Button
+        android:id="@+id/btnStartTime"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="10:30"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:textAllCaps="false"
+        android:backgroundTint="#1A1A2E"
+        android:layout_marginBottom="16dp" />
+
+    <!-- 종료 시간 -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="종료"
+        android:textSize="12sp"
+        android:textColor="#5566AA"
+        android:textStyle="bold"
+        android:letterSpacing="0.1"
+        android:layout_marginBottom="6dp" />
+
+    <Button
+        android:id="@+id/btnEndTime"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="11:15"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:textAllCaps="false"
+        android:backgroundTint="#1A1A2E"
+        android:layout_marginBottom="20dp" />
+
+    <!-- 선택 구간 요약 -->
+    <TextView
+        android:id="@+id/tvRangeSummary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="45분 구간"
+        android:textSize="13sp"
+        android:textColor="#5577CC"
+        android:gravity="center"
+        android:layout_marginBottom="20dp" />
+
+    <!-- 버튼 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnCancel"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="취소"
+            android:textAllCaps="false"
+            android:textColor="#888899"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/btnConfirm"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="2"
+            android:text="대화 확인"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#2A4A8A" />
+
+    </LinearLayout>
+
+</LinearLayout>

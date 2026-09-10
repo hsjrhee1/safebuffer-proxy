@@ -1,0 +1,98 @@
+[
+    {
+        "merged": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-debug-46:\\drawable_bg_segment_selected.xml.flat",
+        "source": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-main-48:\\drawable\\bg_segment_selected.xml"
+    },
+    {
+        "merged": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-debug-46:\\drawable_ic_launcher_background.xml.flat",
+        "source": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-main-48:\\drawable\\ic_launcher_background.xml"
+    },
+    {
+        "merged": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-debug-46:\\layout_activity_transcript.xml.flat",
+        "source": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-main-48:\\layout\\activity_transcript.xml"
+    },
+    {
+        "merged": "com.safebuffer.app-debug-46:/layout_activity_settings.xml.flat",
+        "source": "com.safebuffer.app-main-48:/layout/activity_settings.xml"
+    },
+    {
+        "merged": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-debug-46:\\drawable_ic_mic.xml.flat",
+        "source": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-main-48:\\drawable\\ic_mic.xml"
+    },
+    {
+        "merged": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-debug-46:\\mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-main-48:\\mipmap-anydpi-v26\\ic_launcher_round.xml"
+    },
+    {
+        "merged": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-debug-46:\\layout_activity_locked_evidence.xml.flat",
+        "source": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-main-48:\\layout\\activity_locked_evidence.xml"
+    },
+    {
+        "merged": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-debug-46:\\drawable_ic_stop.xml.flat",
+        "source": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-main-48:\\drawable\\ic_stop.xml"
+    },
+    {
+        "merged": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-debug-46:\\layout_dialog_time_slider.xml.flat",
+        "source": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-main-48:\\layout\\dialog_time_slider.xml"
+    },
+    {
+        "merged": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-debug-46:\\drawable_bg_btn_primary.xml.flat",
+        "source": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-main-48:\\drawable\\bg_btn_primary.xml"
+    },
+    {
+        "merged": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-debug-46:\\layout_activity_main.xml.flat",
+        "source": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-main-48:\\layout\\activity_main.xml"
+    },
+    {
+        "merged": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-debug-46:\\xml_file_paths.xml.flat",
+        "source": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-main-48:\\xml\\file_paths.xml"
+    },
+    {
+        "merged": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-debug-46:\\mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-main-48:\\mipmap-anydpi-v26\\ic_launcher.xml"
+    },
+    {
+        "merged": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-debug-46:\\layout_item_locked_evidence.xml.flat",
+        "source": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-main-48:\\layout\\item_locked_evidence.xml"
+    },
+    {
+        "merged": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-debug-46:\\drawable_bg_segment_normal.xml.flat",
+        "source": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-main-48:\\drawable\\bg_segment_normal.xml"
+    },
+    {
+        "merged": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-debug-46:\\anim_pulse.xml.flat",
+        "source": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-main-48:\\anim\\pulse.xml"
+    },
+    {
+        "merged": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-debug-46:\\layout_dialog_time_range.xml.flat",
+        "source": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-main-48:\\layout\\dialog_time_range.xml"
+    },
+    {
+        "merged": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-debug-46:\\drawable_bg_card.xml.flat",
+        "source": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-main-48:\\drawable\\bg_card.xml"
+    },
+    {
+        "merged": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-debug-46:\\layout_item_transcript_segment.xml.flat",
+        "source": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-main-48:\\layout\\item_transcript_segment.xml"
+    },
+    {
+        "merged": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-debug-46:\\drawable_bg_idle_circle.xml.flat",
+        "source": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-main-48:\\drawable\\bg_idle_circle.xml"
+    },
+    {
+        "merged": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-debug-46:\\drawable_bg_recording_circle.xml.flat",
+        "source": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-main-48:\\drawable\\bg_recording_circle.xml"
+    },
+    {
+        "merged": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-debug-46:\\drawable_ic_launcher_foreground.xml.flat",
+        "source": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-main-48:\\drawable\\ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-debug-46:\\drawable_bg_btn_secondary.xml.flat",
+        "source": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-main-48:\\drawable\\bg_btn_secondary.xml"
+    },
+    {
+        "merged": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-debug-46:\\layout_activity_settings.xml.flat",
+        "source": "C:\\Users\\joshua\\.gradle\\daemon\\8.6\\com.safebuffer.app-main-48:\\layout\\activity_settings.xml"
+    }
+]

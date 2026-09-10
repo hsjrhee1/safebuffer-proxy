@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#0D0D0D">
+
+    <!-- 헤더 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical"
+        android:background="#111111">
+
+        <TextView
+            android:id="@+id/btnBack"
+            android:layout_width="64dp"
+            android:layout_height="48dp"
+            android:text="←"
+            android:textSize="26sp"
+            android:textColor="#FFFFFF"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="대화 타임라인"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF" />
+
+            <TextView
+                android:id="@+id/tvTimeRange"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="12sp"
+                android:textColor="#888888"
+                android:fontFamily="monospace" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- 안내 문구 -->
+    <TextView
+        android:id="@+id/tvInstruction"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="탭으로 시작 지점을 선택하고, 다시 탭으로 끝 지점을 선택하세요."
+        android:textSize="13sp"
+        android:textColor="#AAAAAA"
+        android:padding="16dp"
+        android:background="#161616" />
+
+    <!-- 로딩 상태 -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="48dp"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone"
+        />
+
+    <TextView
+        android:id="@+id/tvLoadingMsg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Whisper AI가 대화를 분석 중입니다..."
+        android:textSize="14sp"
+        android:textColor="#888888"
+        android:gravity="center"
+        android:padding="16dp"
+        android:visibility="gone" />
+
+    <!-- 대화 목록 -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvTranscript"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="8dp"
+        android:clipToPadding="false"
+        android:visibility="gone" />
+
+    <!-- 하단 고정: 선택 요약 + 잠금 버튼 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="#111111">
+
+        <TextView
+            android:id="@+id/tvSelectionSummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="13sp"
+            android:textColor="#FF6B6B"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btnLockSelected"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="🔒 선택한 구간 증거로 잠금"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#B71C1C"
+            android:enabled="false" />
+
+    </LinearLayout>
+
+</LinearLayout>
