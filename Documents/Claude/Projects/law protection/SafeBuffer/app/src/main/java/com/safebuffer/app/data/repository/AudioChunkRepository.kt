@@ -1,5 +1,6 @@
 package com.safebuffer.app.data.repository
 
+import android.content.Context
 import android.util.Log
 import com.safebuffer.app.data.local.ChunkDao
 import com.safebuffer.app.data.local.ChunkEntity
@@ -13,11 +14,13 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.security.MessageDigest
 import java.time.Instant
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class AudioChunkRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val dao: ChunkDao,
     private val api: WhisperApiService
 ) {
@@ -100,9 +103,17 @@ class AudioChunkRepository @Inject constructor(
      * 잠긴 증거 포함 전부 삭제됨.
      */
     suspend fun resetAll() = withContext(Dispatchers.IO) {
-        val all = dao.getAllOnce()
-        all.forEach { chunk ->
-            File(chunk.filePath).apply { if (exists()) delete() }
+        // 전체 초기화에서는 DB가 알고 있는 파일뿐 아니라 legacy/orphan 파일도
+        // 남으면 안 된다. recorder가 완전히 종료된 뒤 호출되는 이 경로에서만
+        // 앱 전용 녹음 디렉터리를 authoritative cleanup 대상으로 삼는다.
+        val chunksDir = File(context.filesDir, "chunks")
+        chunksDir.listFiles()?.forEach { file ->
+            check(file.deleteRecursively()) {
+                "Failed to delete recording during reset: ${file.absolutePath}"
+            }
+        }
+        check(chunksDir.exists() || chunksDir.mkdirs()) {
+            "Failed to create recording directory after reset: ${chunksDir.absolutePath}"
         }
         dao.deleteAll()
         dao.deleteAllSavedRanges()
