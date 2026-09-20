@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/evidenceRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -24,12 +25,28 @@
             android:textSize="20sp" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:id="@+id/tvTitle"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="🔒 잠긴 증거"
+            android:text="저장한 녹음"
             android:textSize="22sp"
             android:textStyle="bold"
             android:textColor="#FFFFFF" />
+
+        <!-- 전체를 하나의 문서로 — 청크별 PDF 는 대화의 일부만 담긴다 -->
+        <Button
+            android:id="@+id/btnExportAll"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="전체 PDF"
+            android:textSize="12sp"
+            android:textAllCaps="false"
+            android:textColor="#C4C4D4"
+            android:backgroundTint="#22223A"
+            android:minWidth="0dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp" />
     </LinearLayout>
 
     <!-- 빈 상태 -->
@@ -37,7 +54,7 @@
         android:id="@+id/tvEmpty"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="잠긴 증거가 없습니다."
+        android:text="아직 저장한 녹음이 없습니다.\n홈에서 남길 구간을 골라 저장해 보세요."
         android:textSize="16sp"
         android:textColor="#666666"
         android:gravity="center"

@@ -11,7 +11,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.safebuffer.app.databinding.ActivityTranscriptBinding
-import com.safebuffer.app.util.TrialManager
+import com.safebuffer.app.ui.settings.SettingsActivity
+import com.safebuffer.app.util.TierManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -33,7 +34,7 @@ class TranscriptActivity : AppCompatActivity() {
     private val viewModel: TranscriptViewModel by viewModels()
     private lateinit var adapter: TranscriptAdapter
 
-    @javax.inject.Inject lateinit var trialManager: TrialManager
+    @javax.inject.Inject lateinit var tierManager: TierManager
 
     private val timeFmt = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
 
@@ -42,6 +43,13 @@ class TranscriptActivity : AppCompatActivity() {
         binding = ActivityTranscriptBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // ★ 상단 상태바 / 하단 제스처바에 헤더·저장 버튼이 가리지 않도록 인셋만큼 패딩
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.transcriptRoot) { v, insets ->
+            val bars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+            v.setPadding(0, bars.top, 0, bars.bottom)
+            insets
+        }
+
         val fromMs = intent.getLongExtra(EXTRA_FROM_MS, 0L)
         val toMs   = intent.getLongExtra(EXTRA_TO_MS, System.currentTimeMillis())
 
@@ -49,9 +57,11 @@ class TranscriptActivity : AppCompatActivity() {
         setupUI(fromMs, toMs)
         observeViewModel()
 
-        // 체험 만료 확인 후 전사 시작
-        if (trialManager.isExpired()) {
-            showTrialExpiredDialog()
+        // ★ STT는 유료. 정식 버전을 사지 않았으면 전사하지 않고 구매를 안내한다.
+        //   정식 버전이 있으면 크레딧(맛보기 1시간 포함)에서 차감하며 전사한다.
+        //   (크레딧이 0이면 transcribeRange 가 QuotaExceeded 로 안내한다.)
+        if (!tierManager.isPremium()) {
+            showPurchaseNeededDialog()
         } else {
             viewModel.transcribeRange(fromMs, toMs)
         }
@@ -96,13 +106,42 @@ class TranscriptActivity : AppCompatActivity() {
                     }
                     is TranscriptViewModel.UiState.Done -> {
                         binding.progressBar.visibility = View.GONE
-                        binding.tvLoadingMsg.visibility = View.GONE
-                        binding.rvTranscript.visibility = View.VISIBLE
+                        // ★ 결과가 0건일 때 빈 화면만 보이면 녹음 실패인지 대화가 없었는지
+                        //   사용자가 구분할 수 없다. 이유를 명시한다.
+                        if (viewModel.segments.value.isEmpty()) {
+                            binding.rvTranscript.visibility = View.GONE
+                            binding.tvLoadingMsg.visibility = View.VISIBLE
+                            binding.tvLoadingMsg.text =
+                                "이 구간에서 인식된 대화가 없습니다.\n\n" +
+                                "· 녹음이 아직 10분이 되지 않았다면 첫 저장 전일 수 있습니다\n" +
+                                "· 주변이 조용했거나 소리가 작으면 인식되지 않습니다\n" +
+                                "· 마이크가 다른 앱(통화 등)에 사용 중이었을 수 있습니다"
+                        } else {
+                            binding.tvLoadingMsg.visibility = View.GONE
+                            binding.rvTranscript.visibility = View.VISIBLE
+                        }
                     }
                     is TranscriptViewModel.UiState.Error -> {
                         binding.progressBar.visibility = View.GONE
                         binding.tvLoadingMsg.text = "오류: ${state.message}"
                         binding.tvLoadingMsg.visibility = View.VISIBLE
+                    }
+                    is TranscriptViewModel.UiState.QuotaExceeded -> {
+                        binding.progressBar.visibility = View.GONE
+                        binding.tvLoadingMsg.visibility = View.GONE
+                        val msg = "AI 대화 기록에 쓸 시간이 부족합니다.\n" +
+                            "남은 시간: ${state.purchasedRemaining}\n\n" +
+                            "설정에서 'AI 대화 기록 5시간(12,900원)'을 구매하면 계속 사용할 수 있습니다."
+                        MaterialAlertDialogBuilder(this@TranscriptActivity)
+                            .setTitle("변환 시간이 부족합니다")
+                            .setMessage(msg)
+                            .setPositiveButton("설정으로") { _, _ ->
+                                startActivity(Intent(
+                                    this@TranscriptActivity, SettingsActivity::class.java
+                                ))
+                            }
+                            .setNegativeButton("확인", null)
+                            .show()
                     }
                     else -> {}
                 }
@@ -140,8 +179,8 @@ class TranscriptActivity : AppCompatActivity() {
                 val from = timeFmt.format(Date(event.fromMs))
                 val to   = timeFmt.format(Date(event.toMs))
                 MaterialAlertDialogBuilder(this@TranscriptActivity)
-                    .setTitle("✅ 증거 저장 완료")
-                    .setMessage("$from ~ $to 구간이\n48시간이 지나도 삭제되지 않도록 잠겼습니다.")
+                    .setTitle("저장했습니다")
+                    .setMessage("$from ~ $to 구간을 보관했습니다.\n48시간이 지나도 삭제되지 않습니다.")
                     .setPositiveButton("확인") { _, _ -> finish() }
                     .show()
             }
@@ -158,7 +197,7 @@ class TranscriptActivity : AppCompatActivity() {
             .take(300)
 
         MaterialAlertDialogBuilder(this)
-            .setTitle("🔒 이 구간을 증거로 저장할까요?")
+            .setTitle("이 구간을 남겨둘까요?")
             .setMessage("구간: $from ~ $to\n\n$preview")
             .setPositiveButton("저장") { _, _ ->
                 viewModel.lockSelectedRange()
@@ -167,12 +206,17 @@ class TranscriptActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun showTrialExpiredDialog() {
+    private fun showPurchaseNeededDialog() {
         MaterialAlertDialogBuilder(this)
-            .setTitle("체험 기간 종료")
-            .setMessage("3일 무료 체험이 종료되었습니다.\n\n정식 버전으로 업그레이드하면 대화 내용 확인 및 증거 잠금 기능을 계속 사용할 수 있습니다.")
-            .setPositiveButton("업그레이드") { _, _ ->
-                // TODO: 인앱 결제 연동
+            .setTitle("정식 버전이 필요합니다")
+            .setMessage(
+                "AI 대화 기록은 정식 버전(5,500원, 한 번만) 기능입니다.\n\n" +
+                "정식 버전을 구매하면 맛보기 1시간이 포함되고, 이후 'AI 대화 기록 5시간(12,900원)'을 추가로 구매할 수 있습니다."
+            )
+            .setPositiveButton("정식 버전 구매") { _, _ ->
+                startActivity(Intent(
+                    this@TranscriptActivity, SettingsActivity::class.java
+                ))
                 finish()
             }
             .setNegativeButton("닫기") { _, _ -> finish() }

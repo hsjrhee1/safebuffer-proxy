@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/transcriptRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -118,7 +119,7 @@
             android:id="@+id/btnLockSelected"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:text="🔒 선택한 구간 증거로 잠금"
+            android:text="녹음 저장"
             android:textSize="16sp"
             android:textColor="#FFFFFF"
             android:backgroundTint="#B71C1C"

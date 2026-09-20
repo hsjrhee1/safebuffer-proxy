@@ -19,7 +19,46 @@ object PdfReportGenerator {
     private val timeFmt = SimpleDateFormat("HH:mm:ss", Locale.KOREA)
     private val fileFmt = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.KOREA)
 
-    fun generate(context: Context, evidence: LockedEvidence): File {
+    /**
+     * 보관된 녹음 전체를 하나의 문서로 만든다.
+     *
+     * 청크별 PDF 는 그 청크에 담긴 대화만 들어 있어서, 구간을 저장하면 대화가
+     * 여러 문서에 쪼개진다("반만 나오는" 증상). 시간순으로 이어 붙여 하나로 낸다.
+     *
+     * 원본 무결성을 위해 각 구간의 SHA-256 해시를 모두 함께 기록한다.
+     */
+    fun generateAll(context: Context, items: List<LockedEvidence>): File {
+        val sorted = items.sortedBy { it.chunk.startTimeMs }
+        val merged = buildString {
+            sorted.forEachIndexed { i, ev ->
+                val from = timeFmt.format(Date(ev.chunk.startTimeMs))
+                val to   = timeFmt.format(Date(ev.chunk.endTimeMs))
+                appendLine("──────────────────────────────")
+                appendLine("[구간 ${i + 1}]  $from ~ $to")
+                ev.chunk.fileHash?.let { appendLine("해시  ${it.take(32)}…") }
+                appendLine()
+                val body = ev.chunk.transcription?.let { t ->
+                    if (t.isNotBlank() && t != "[]" && t != "__SILENT__") ev.transcriptText else null
+                }
+                appendLine(body ?: "(이 구간은 대화 기록을 만들지 않았습니다)")
+                appendLine()
+            }
+        }.trimEnd()
+
+        val first = sorted.first()
+        val combined = LockedEvidence(
+            chunk = first.chunk.copy(endTimeMs = sorted.last().chunk.endTimeMs),
+            transcriptText = merged
+        )
+        return generate(context, combined, forceTranscript = true, allCount = sorted.size)
+    }
+
+    fun generate(
+        context: Context,
+        evidence: LockedEvidence,
+        forceTranscript: Boolean = false,
+        allCount: Int = 0
+    ): File {
         val pageWidth = 595
         val pageHeight = 842
         val margin = 50f
@@ -53,8 +92,14 @@ object PdfReportGenerator {
             strokeWidth = 0.8f
         }
 
-        // 전체 본문을 StaticLayout으로 미리 렌더링
-        val bodyText = evidence.transcriptText.ifBlank { "(대화 내용 없음)" }
+        // ★ 대화 기록이 없으면 '녹음 증명서'로, 있으면 '대화 기록 리포트'로 만든다.
+        //   기록이 없는데 "대화 내용" 항목에 "(대화 내용 없음)"만 찍혀 나오면
+        //   고장 난 빈 문서처럼 보인다. 아예 그 항목을 빼고 증명서로 완성시킨다.
+        val hasTranscript = forceTranscript || (evidence.chunk.transcription?.let {
+            it.isNotBlank() && it != "[]" && it != "__SILENT__"
+        } ?: false)
+
+        val bodyText = if (hasTranscript) evidence.transcriptText else ""
         val bodyLayout = StaticLayout.Builder
             .obtain(bodyText, 0, bodyText.length, bodyPaint, contentWidth)
             .setAlignment(Layout.Alignment.ALIGN_NORMAL)
@@ -84,8 +129,13 @@ object PdfReportGenerator {
             var y = margin
 
             if (pageIndex == 0) {
-                // 제목
-                canvas.drawText("SafeBuffer 증거 리포트", margin, y + 20f, titlePaint)
+                // 제목 — 대화 기록 유무에 따라 문서 성격이 다르다
+                val title = when {
+                    allCount > 0   -> "SafeBuffer 대화 기록 (전체 ${allCount}건)"
+                    hasTranscript  -> "SafeBuffer 대화 기록"
+                    else           -> "SafeBuffer 녹음 증명서"
+                }
+                canvas.drawText(title, margin, y + 20f, titlePaint)
                 y += 38f
                 canvas.drawLine(margin, y, pageWidth - margin, y, linePaint)
                 y += 16f
@@ -135,8 +185,27 @@ object PdfReportGenerator {
 
                 canvas.drawLine(margin, y, pageWidth - margin, y, linePaint)
                 y += 14f
-                canvas.drawText("대화 내용", margin, y, headingPaint)
-                y += 18f
+                if (hasTranscript) {
+                    canvas.drawText("대화 내용", margin, y, headingPaint)
+                    y += 18f
+                } else {
+                    // 증명서: 대화 내용 항목을 아예 두지 않고, 이 문서가 무엇인지 밝힌다
+                    canvas.drawText(
+                        "이 문서는 위 녹음 파일의 존재와 시각, 무결성을 증명합니다.",
+                        margin, y, bodyPaint
+                    )
+                    y += 15f
+                    canvas.drawText(
+                        "대화 내용은 아직 글로 옮기지 않았습니다.",
+                        margin, y, bodyPaint
+                    )
+                    y += 15f
+                    canvas.drawText(
+                        "앱의 '녹음 기록'에서 이 구간의 [대화 기록] 버튼을 누르면 내용이 포함된 문서를 만들 수 있습니다.",
+                        margin, y, bodyPaint
+                    )
+                    y += 18f
+                }
             }
 
             // StaticLayout을 캔버스에 클리핑해서 그리기
@@ -176,8 +245,11 @@ object PdfReportGenerator {
             doc.finishPage(page)
         }
 
-        val dir = File(context.getExternalFilesDir(null), "reports").also { it.mkdirs() }
-        val file = File(dir, "SafeBuffer_${fileFmt.format(Date(evidence.chunk.startTimeMs))}.pdf")
+        // getExternalFilesDir()이 null을 반환하는 기기(외부저장소 없음)에서도 안전하게 동작하도록 filesDir 사용
+        val dir = File(context.filesDir, "reports").also { it.mkdirs() }
+        val stamp = fileFmt.format(Date(evidence.chunk.startTimeMs))
+        val name = if (allCount > 0) "SafeBuffer_전체_$stamp.pdf" else "SafeBuffer_$stamp.pdf"
+        val file = File(dir, name)
         file.outputStream().use { doc.writeTo(it) }
         doc.close()
 

@@ -1,10 +1,5 @@
 package com.safebuffer.app.data.repository
 
-import android.media.MediaCodec
-import android.media.MediaExtractor
-import android.media.MediaFormat
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.safebuffer.app.data.local.ChunkDao
 import com.safebuffer.app.data.model.TranscriptSegment
 import com.safebuffer.app.data.remote.WhisperApiService
@@ -15,10 +10,8 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
-import java.nio.ByteOrder
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.math.sqrt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -27,11 +20,18 @@ class WhisperRepository @Inject constructor(
     private val api: WhisperApiService,
     private val chunkDao: ChunkDao
 ) {
-    private val gson = Gson()
+    companion object {
+        /** 로컬에서 무음으로 확인된 청크 표식 — 빈 배열("[]")과 구분해야 한다 */
+        const val MARKER_SILENT = "__SILENT__"
+    }
 
     // ── 사전 필터 (Whisper 호출 전) ──────────────────────────────
-    // RMS 이하면 침묵으로 판단, API 호출 건너뜀
-    private val SILENCE_THRESHOLD = 0.008f
+    // 파일 전체 250ms 버킷 중 **최댓값**이 이 값 미만이면 무음으로 판단해 API 호출을 건너뛴다.
+    //
+    // 평균이 아니라 최댓값 기준이므로 문턱은 조금 높아도 된다.
+    // 다만 마이크 게인은 기기마다 크게 다르므로 여전히 보수적으로 잡는다 —
+    // 애매하면 Whisper 에 보내는 쪽이 안전하다. 잘못 버리면 증거가 사라진다.
+    private val SILENCE_THRESHOLD = 0.006f
 
     // ── 사후 필터 (Whisper 응답 후) ──────────────────────────────
     // ① 무음 확률: 이 값 이상이면 음성 없다고 판단
@@ -73,19 +73,32 @@ class WhisperRepository @Inject constructor(
             val chunks = chunkDao.getChunksInRange(fromMs, toMs)
 
             if (chunks.isEmpty()) {
-                return Result.failure(Exception("해당 구간에 녹음된 파일이 없습니다."))
+                return Result.failure(Exception(
+                    "해당 구간에 녹음된 파일이 없습니다.\n" +
+                    "녹음 시작 직후라면 3초 이상 기다린 뒤 다시 시도하세요."
+                ))
             }
 
             val allSegments = mutableListOf<TranscriptSegment>()
             var segmentIdOffset = 0
 
             for (chunk in chunks) {
-                // 캐시 확인 — 이미 전사된 청크는 API 호출 없이 바로 사용
                 val cached = chunk.transcription
-                val segments = if (!cached.isNullOrBlank()) {
-                    val type = object : TypeToken<List<TranscriptSegment>>() {}.type
-                    val list: List<TranscriptSegment> = gson.fromJson(cached, type)
-                    list.mapIndexed { i, seg -> seg.copy(id = segmentIdOffset + i) }
+
+                // ★ 캐시 정책 ────────────────────────────────────────────────
+                //  MARKER_SILENT : 로컬에서 무음으로 확인됨 → 재시도 불필요, 캐시 신뢰
+                //  비어있지 않은 JSON 배열 : 정상 전사 결과 → 캐시 신뢰
+                //  "[]" : 구버전이 HTTP 오류를 빈 결과로 오인해 박아둔 오염 캐시.
+                //         (v50 이전 버그) 캐시로 취급하지 않고 재전사한다 → 자동 복구.
+                //  null/공백 : 아직 전사 안 함
+                val usableCache = when {
+                    cached == MARKER_SILENT              -> emptyList()
+                    !cached.isNullOrBlank() && cached != "[]" -> parseSegmentsJson(cached)
+                    else                                 -> null   // 재전사 필요
+                }
+
+                val segments = if (usableCache != null) {
+                    usableCache.mapIndexed { i, seg -> seg.copy(id = segmentIdOffset + i) }
                 } else {
                     val file = File(chunk.filePath)
                     if (!file.exists()) continue
@@ -93,12 +106,17 @@ class WhisperRepository @Inject constructor(
                     // ★ 침묵 구간은 Whisper 호출 건너뜀 — hallucination 방지
                     // IO 스레드에서 실행 (MediaCodec 디코딩 → Main thread 블로킹 방지)
                     if (withContext(Dispatchers.IO) { isSilent(file) }) {
-                        chunkDao.updateTranscription(chunk.id, gson.toJson(emptyList<TranscriptSegment>()))
+                        chunkDao.updateTranscription(chunk.id, MARKER_SILENT)
                         continue
                     }
 
                     val result = transcribeSingleChunk(file, chunk.startTimeMs, segmentIdOffset)
-                    chunkDao.updateTranscription(chunk.id, gson.toJson(result))
+                    // ★ 결과가 있을 때만 캐싱한다.
+                    //   빈 결과는 서버 일시 오류·필터 과잉일 수 있으므로 캐싱하면 안 된다.
+                    //   (이것을 캐싱한 것이 "한 번 비면 영원히 비는" 버그의 원인이었다)
+                    if (result.isNotEmpty()) {
+                        chunkDao.updateTranscription(chunk.id, serializeSegmentsJson(result))
+                    }
                     result
                 }
 
@@ -123,26 +141,36 @@ class WhisperRepository @Inject constructor(
             body = file.asRequestBody("audio/mp4".toMediaType())
         )
 
-        // Whisper API 호출 (시간 소요)
-        val response = api.transcribe(file = filePart)
+        // Whisper API 호출 — Call.execute() 사용 (suspend 대신)
+        // R8에서 suspend fun → Continuation<ResponseBody> 제네릭 소거 에러를 방지하기 위해
+        // Call<ResponseBody>.execute()로 직접 호출. execute()는 블로킹이므로 IO 스레드 필요.
+        val rawJson = withContext(Dispatchers.IO) {
+            val response = api.transcribe(file = filePart).execute()
+            // ★ HTTP 오류(4xx/5xx) 시 예외 발생 → 이 청크를 캐싱하지 않음
+            // (response.body()만 체크하면 null → ""로 폴백돼 빈 결과가 영구 캐싱되는 버그 방지)
+            if (!response.isSuccessful) {
+                throw Exception("STT 서버 오류: HTTP ${response.code()}")
+            }
+            response.body()?.string() ?: ""
+        }
+        val whisperSegments = parseWhisperResponse(rawJson)
 
         // Whisper 응답 후 amplitude 분석 — 세그먼트별 silence 판정용
-        // IO 스레드에서 실행, null 반환 시 amplitude 필터 건너뜀 → false negative 방지
         val analysis: AudioAnalysisResult? = withContext(Dispatchers.IO) {
             AudioWaveformLoader.analyzeForStt(file.absolutePath)
         }
 
-        return response.segments
-            ?.filter { seg -> isValidSegment(seg) }
-            ?.filter { seg -> !isSegmentSilent(seg, analysis) }
-            ?.mapIndexed { i, seg ->
+        return whisperSegments
+            .filter { seg -> isValidSegment(seg) }
+            .filter { seg -> !isSegmentSilent(seg, analysis) }
+            .mapIndexed { i, seg ->
                 TranscriptSegment(
                     id = idOffset + i,
                     absoluteStartMs = chunkStartMs + (seg.start * 1000).toLong(),
                     absoluteEndMs = chunkStartMs + (seg.end * 1000).toLong(),
                     text = seg.text.trim()
                 )
-            } ?: emptyList()
+            }
     }
 
     /**
@@ -219,87 +247,92 @@ class WhisperRepository @Inject constructor(
     }
 
     /**
-     * 오디오 파일의 평균 RMS를 계산해 침묵 여부 판단.
-     * 처음 30초만 샘플링해서 속도 확보.
+     * 청크 전체가 무음인지 판단한다.
+     *
+     * ★ 기존 구현의 치명적 결함:
+     *   "처음 30초만 샘플링 + 그 구간의 평균 RMS" 로 판정했다.
+     *   10분짜리 청크에서 처음 30초가 조용하고 2분째부터 대화가 시작되면
+     *   청크 전체가 무음으로 찍혀 Whisper 에 보내지지도 않고 영구 캐싱됐다.
+     *   → "어떤 때는 되고 어떤 때는 안 되는" 전사 누락의 직접 원인.
+     *     (대화가 청크 앞 30초에 걸렸는지 아닌지에 따라 갈림)
+     *
+     * 수정: 파일 **전체**를 250ms 버킷으로 분석하고 **최댓값(peak)** 으로 판단한다.
+     *   파일 어느 지점에서든 말소리 수준의 진폭이 한 번이라도 있으면 무음이 아니다.
+     *   평균이 아니라 최댓값을 쓰는 이유는, 10분 중 1분만 대화여도 평균은
+     *   묻혀버리기 때문이다.
+     *
+     * 판단 불가(디코딩 실패 등)면 false — 애매하면 Whisper 에 보내는 쪽이 안전하다.
      */
     private fun isSilent(file: File): Boolean {
-        val extractor = MediaExtractor()
         return try {
-            extractor.setDataSource(file.absolutePath)
+            val analysis = AudioWaveformLoader.analyzeForStt(file.absolutePath)
+                ?: return false
+            val amps = analysis.amplitudes
+            if (amps.isEmpty()) return false
 
-            var trackIndex = -1
-            var format: MediaFormat? = null
-            for (i in 0 until extractor.trackCount) {
-                val f = extractor.getTrackFormat(i)
-                if (f.getString(MediaFormat.KEY_MIME)?.startsWith("audio/") == true) {
-                    trackIndex = i; format = f; break
-                }
+            val peak = amps.maxOrNull() ?: 0f
+            val silent = peak < SILENCE_THRESHOLD
+            if (silent) {
+                android.util.Log.d("WhisperRepository",
+                    "무음 판정: peak=$peak < $SILENCE_THRESHOLD (${file.name})")
             }
-            if (trackIndex < 0 || format == null) return false
-
-            extractor.selectTrack(trackIndex)
-
-            val mime = format.getString(MediaFormat.KEY_MIME) ?: return false
-            // 처음 30초만 체크
-            val sampleLimitUs = 30_000_000L
-
-            val codec = MediaCodec.createDecoderByType(mime)
-            codec.configure(format, null, null, 0)
-            codec.start()
-
-            val info = MediaCodec.BufferInfo()
-            var inputDone = false
-            var outputDone = false
-            var sumSq = 0.0
-            var totalSamples = 0L
-            var loopCount = 0
-
-            try {
-                while (!outputDone && loopCount++ < 20_000) {
-                    if (!inputDone) {
-                        val inIdx = codec.dequeueInputBuffer(5_000)
-                        if (inIdx >= 0) {
-                            val buf = codec.getInputBuffer(inIdx)!!
-                            val size = extractor.readSampleData(buf, 0)
-                            if (size < 0 || extractor.sampleTime > sampleLimitUs) {
-                                codec.queueInputBuffer(inIdx, 0, 0, 0,
-                                    MediaCodec.BUFFER_FLAG_END_OF_STREAM)
-                                inputDone = true
-                            } else {
-                                codec.queueInputBuffer(inIdx, 0, size, extractor.sampleTime, 0)
-                                extractor.advance()
-                            }
-                        }
-                    }
-
-                    val outIdx = codec.dequeueOutputBuffer(info, 5_000)
-                    if (outIdx >= 0) {
-                        val buf = codec.getOutputBuffer(outIdx)!!
-                        buf.order(ByteOrder.LITTLE_ENDIAN)
-                        val shorts = buf.asShortBuffer()
-                        while (shorts.hasRemaining()) {
-                            val s = shorts.get().toFloat() / 32768f
-                            sumSq += s * s
-                            totalSamples++
-                        }
-                        codec.releaseOutputBuffer(outIdx, false)
-                        if (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0)
-                            outputDone = true
-                    }
-                }
-            } finally {
-                codec.stop()
-                codec.release()
-            }
-
-            if (totalSamples == 0L) return true
-            val rms = sqrt(sumSq / totalSamples).toFloat()
-            rms < SILENCE_THRESHOLD
-
+            silent
         } catch (e: Exception) {
             false  // 판단 불가 시 API 호출 허용
-        } finally {
-            extractor.release()
+        }
+    }
+
+    /** Whisper API 응답(JSON) → WhisperSegment 목록 — org.json 직접 파싱, Gson 불사용 */
+    private fun parseWhisperResponse(json: String): List<WhisperSegment> {
+        return try {
+            val root = org.json.JSONObject(json)
+            val arr = root.optJSONArray("segments") ?: return emptyList()
+            (0 until arr.length()).map { i ->
+                val obj = arr.getJSONObject(i)
+                WhisperSegment(
+                    id               = obj.optInt("id", i),
+                    start            = obj.optDouble("start", 0.0),
+                    end              = obj.optDouble("end", 0.0),
+                    text             = obj.optString("text", ""),
+                    noSpeechProb     = obj.optDouble("no_speech_prob", 0.0),
+                    avgLogprob       = obj.optDouble("avg_logprob", 0.0),
+                    compressionRatio = obj.optDouble("compression_ratio", 1.0)
+                )
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    /** org.json으로 직렬화 — ProGuard 난독화에 안전 */
+    private fun serializeSegmentsJson(segments: List<TranscriptSegment>): String {
+        val arr = org.json.JSONArray()
+        segments.forEach { seg ->
+            arr.put(org.json.JSONObject().apply {
+                put("id", seg.id)
+                put("absoluteStartMs", seg.absoluteStartMs)
+                put("absoluteEndMs", seg.absoluteEndMs)
+                put("text", seg.text)
+            })
+        }
+        return arr.toString()
+    }
+
+    /** org.json으로 파싱 — ProGuard 난독화에 안전 */
+    private fun parseSegmentsJson(json: String): List<TranscriptSegment> {
+        return try {
+            val arr = org.json.JSONArray(json)
+            (0 until arr.length()).map { i ->
+                val obj = arr.getJSONObject(i)
+                TranscriptSegment(
+                    id             = obj.optInt("id", i),
+                    absoluteStartMs = obj.getLong("absoluteStartMs"),
+                    absoluteEndMs   = obj.getLong("absoluteEndMs"),
+                    text           = obj.getString("text")
+                )
+            }
+        } catch (e: Exception) {
+            emptyList()
         }
     }
 }

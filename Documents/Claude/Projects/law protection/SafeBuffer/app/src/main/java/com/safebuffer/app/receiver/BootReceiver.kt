@@ -12,10 +12,15 @@ import com.safebuffer.app.service.RecordingService
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
-            ContextCompat.startForegroundService(
-                context,
-                RecordingService.startIntent(context)
-            )
+            // ★ try-catch 필수: 부팅 직후 포그라운드 서비스 시작 실패 시 앱 크래시 방지
+            try {
+                ContextCompat.startForegroundService(
+                    context,
+                    RecordingService.startIntent(context)
+                )
+            } catch (e: Exception) {
+                android.util.Log.e("BootReceiver", "부팅 후 서비스 시작 실패: ${e.message}")
+            }
         }
     }
 }

@@ -3,101 +3,216 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="#1A1A2E"
+    android:background="#13131E"
     android:padding="16dp"
-    android:layout_marginBottom="12dp">
+    android:layout_marginBottom="10dp">
 
-    <!-- 시간 범위 -->
-    <TextView
-        android:id="@+id/tvTimeRange"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="13sp"
-        android:textColor="#4FC3F7"
-        android:fontFamily="monospace"
-        android:layout_marginBottom="8dp" />
-
-    <!-- 대화 내용 미리보기 -->
-    <TextView
-        android:id="@+id/tvTranscript"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="14sp"
-        android:textColor="#CCCCCC"
-        android:maxLines="3"
-        android:ellipsize="end"
-        android:layout_marginBottom="14dp" />
-
-    <!-- 파형 뷰어 -->
-    <com.safebuffer.app.ui.widget.WaveformView
-        android:id="@+id/waveformView"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_marginBottom="12dp"
-        android:background="#0D1F33"
-        android:clickable="true"
-        android:focusable="true" />
-
-    <!-- 버튼 1행: 재생 | 녹음 공유 -->
+    <!-- 상단 줄: 종류 배지(왼쪽) + 길이 칩(오른쪽) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="8dp">
+        android:gravity="center_vertical"
+        android:layout_marginBottom="10dp">
 
-        <Button
-            android:id="@+id/btnPlay"
+        <TextView
+            android:id="@+id/tvKindBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp" />
+
+        <View
             android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:text="▶  재생"
-            android:textSize="14sp"
-            android:textAllCaps="false"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#1565C0"
-            android:layout_marginEnd="6dp" />
+            android:layout_height="1dp"
+            android:layout_weight="1" />
 
-        <Button
-            android:id="@+id/btnShareAudio"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:text="🎵  녹음 공유"
-            android:textSize="14sp"
-            android:textAllCaps="false"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#1B5E20" />
-
+        <TextView
+            android:id="@+id/tvDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_duration_chip"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="#AEB6D8" />
     </LinearLayout>
 
-    <!-- 버튼 2행: PDF | 삭제 -->
+    <!-- 날짜 (하루 한 번만) -->
+    <TextView
+        android:id="@+id/tvDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:textColor="#8C9AC0"
+        android:layout_marginBottom="2dp" />
+
+    <!-- 시간 범위 (시작 → 끝) -->
+    <TextView
+        android:id="@+id/tvTimeRange"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        android:textColor="#C7CCF5"
+        android:letterSpacing="0.02"
+        android:layout_marginBottom="4dp" />
+
+    <!-- SHA-256 해시 검증 배지 (fileHash 있을 때만 표시) -->
+    <TextView
+        android:id="@+id/tvHashBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="✓ SHA-256 무결성 확인됨"
+        android:textSize="10sp"
+        android:textColor="#22C55E"
+        android:layout_marginBottom="10dp"
+        android:visibility="gone" />
+
+    <!-- 대화 내용 미리보기 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="vertical"
+        android:background="#0A0A14"
+        android:padding="12dp"
+        android:layout_marginBottom="10dp">
 
-        <Button
-            android:id="@+id/btnExportPdf"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:text="📄  PDF"
-            android:textSize="14sp"
-            android:textAllCaps="false"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#E65100"
-            android:layout_marginEnd="6dp" />
+        <TextView
+            android:id="@+id/tvTranscript"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textColor="#C4C4D4"
+            android:maxLines="4"
+            android:ellipsize="end"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="2dp"
+            android:lineSpacingMultiplier="1.5" />
+    </LinearLayout>
 
-        <Button
-            android:id="@+id/btnDelete"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:text="삭제"
-            android:textSize="14sp"
-            android:textAllCaps="false"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#3A1010" />
+    <!-- 파형 뷰어 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#0A0A14"
+        android:padding="10dp"
+        android:layout_marginBottom="10dp">
+
+        <com.safebuffer.app.ui.widget.WaveformView
+            android:id="@+id/waveformView"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <!-- 재생 버튼 -->
+    <Button
+        android:id="@+id/btnPlay"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="▶  재생"
+        android:textSize="14sp"
+        android:textAllCaps="false"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#6366F1"
+        android:layout_marginBottom="8dp" />
+
+    <!-- 액션 버튼 2x2 그리드 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="4dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="4dp">
+
+            <Button
+                android:id="@+id/btnShareAudio"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="🔗 공유"
+                android:textSize="13sp"
+                android:textColor="#A0A0C0"
+                android:textAllCaps="false"
+                android:backgroundTint="#22223A"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/btnExportPdf"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="📄 PDF"
+                android:textSize="13sp"
+                android:textColor="#A0A0C0"
+                android:textAllCaps="false"
+                android:backgroundTint="#22223A" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnExportDocx"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="📝 Word"
+                android:textSize="13sp"
+                android:textColor="#A0A0C0"
+                android:textAllCaps="false"
+                android:backgroundTint="#22223A"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/btnDelete"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="🗑 삭제"
+                android:textSize="13sp"
+                android:textColor="#EF4444"
+                android:textAllCaps="false"
+                android:backgroundTint="#2E1515" />
+
+        </LinearLayout>
 
     </LinearLayout>
+
 </LinearLayout>

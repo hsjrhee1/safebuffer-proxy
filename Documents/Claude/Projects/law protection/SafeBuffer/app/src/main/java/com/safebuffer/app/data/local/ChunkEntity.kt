@@ -29,5 +29,23 @@ data class ChunkEntity(
     // ── 원본 증명 (SHA-256 + 서버 타임스탬프) ──
     val fileHash: String? = null,          // 파일 SHA-256 해시 (변조 여부 검증)
     val serverTimestamp: String? = null,   // 서버 수신 시각 (ISO 8601)
-    val serverToken: String? = null        // 서버 발급 토큰 (HMAC-SHA256 서명 포함)
+    val serverToken: String? = null,       // 서버 발급 토큰 (HMAC-SHA256 서명 포함)
+
+    /**
+     * 녹음 중 일정 간격으로 수집한 진폭 요약. 쉼표로 구분된 0~100 정수.
+     *
+     * 홈 화면 48시간 타임라인을 그리는 데 쓴다. 파일을 디코딩해서 계산하면
+     * 청크 하나에 수 초씩 걸려 144개를 훑는 게 불가능하므로,
+     * 녹음하면서 MediaRecorder.getMaxAmplitude() 로 미리 모아둔다. (디코딩 없음)
+     */
+    val amplitudes: String? = null,
+
+    /**
+     * 저장 묶음 ID. 한 번 '저장'할 때 포함된 청크들이 같은 값을 갖는다.
+     *
+     * 저장 한 번이 목록에서 항목 하나로 보여야 한다. 이 값이 없으면
+     * 10분 청크들이 제각각 흩어져 나타나고, 문서도 조각별로 만들어진다.
+     * null = 아직 저장되지 않은 버퍼 청크.
+     */
+    val saveGroupId: Long? = null
 )

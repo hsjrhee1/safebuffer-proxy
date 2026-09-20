@@ -3,15 +3,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0A0A10"
+    android:background="#0F0F18"
     android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingStart="20dp"
-        android:paddingEnd="20dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
         android:paddingTop="16dp"
         android:paddingBottom="24dp">
 
@@ -21,7 +21,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="24dp">
+            android:layout_marginBottom="16dp">
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -33,18 +33,17 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="SafeBuffer"
-                    android:textSize="28sp"
+                    android:textSize="22sp"
                     android:textStyle="bold"
                     android:textColor="#FFFFFF"
-                    android:letterSpacing="0.02" />
+                    android:letterSpacing="-0.02" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="법률 증거 안전 녹음"
+                    android:text="필요한 순간, 증거를 지킵니다"
                     android:textSize="12sp"
-                    android:textColor="#5566AA"
-                    android:letterSpacing="0.05" />
+                    android:textColor="#7788AA" />
             </LinearLayout>
 
             <Button
@@ -52,123 +51,120 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:text="⚙"
-                android:textSize="18sp"
+                android:textSize="20sp"
                 android:padding="0dp"
                 style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:textColor="#555577" />
+                android:backgroundTint="#1A1A26"
+                android:textColor="#8899BB" />
         </LinearLayout>
 
         <!-- ── 녹음 상태 카드 ── -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardBackgroundColor="#161622"
-            app:cardCornerRadius="20dp"
+            android:layout_marginBottom="10dp"
+            app:cardBackgroundColor="#13131E"
+            app:cardCornerRadius="18dp"
             app:cardElevation="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:gravity="center"
-                android:paddingTop="36dp"
-                android:paddingBottom="32dp"
-                android:paddingStart="24dp"
-                android:paddingEnd="24dp">
+                android:paddingTop="20dp"
+                android:paddingBottom="20dp"
+                android:paddingStart="18dp"
+                android:paddingEnd="18dp">
 
-                <!-- 맥박 원형 인디케이터 -->
-                <FrameLayout
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:layout_marginBottom="20dp">
-
-                    <!-- 외부 링 (맥박) -->
-                    <View
-                        android:id="@+id/viewPulseRing"
-                        android:layout_width="100dp"
-                        android:layout_height="100dp"
-                        android:layout_gravity="center"
-                        android:background="@drawable/bg_recording_circle"
-                        android:alpha="0.25"
-                        android:visibility="gone" />
-
-                    <!-- 내부 원 -->
-                    <View
-                        android:id="@+id/viewRecordingDot"
-                        android:layout_width="72dp"
-                        android:layout_height="72dp"
-                        android:layout_gravity="center"
-                        android:background="@drawable/bg_idle_circle" />
-
-                    <!-- 마이크 아이콘 -->
-                    <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/ic_mic"
-                        android:tint="#AAAAAA"
-                        android:id="@+id/ivMicIcon" />
-                </FrameLayout>
-
-                <!-- 녹음 상태 텍스트 -->
-                <TextView
-                    android:id="@+id/tvRecordingStatus"
-                    android:layout_width="wrap_content"
+                <!-- 상태 + 자동삭제 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="대기 중"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:textColor="#666688"
-                    android:letterSpacing="0.08"
-                    android:layout_marginBottom="8dp" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="14dp">
 
-                <!-- 버퍼 크기 -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <!-- 맥박 인디케이터 -->
+                        <FrameLayout
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_marginEnd="10dp">
+
+                            <View
+                                android:id="@+id/viewPulseRing"
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
+                                android:layout_gravity="center"
+                                android:background="@drawable/bg_recording_circle"
+                                android:alpha="0.25"
+                                android:visibility="gone" />
+
+                            <View
+                                android:id="@+id/viewRecordingDot"
+                                android:layout_width="10dp"
+                                android:layout_height="10dp"
+                                android:layout_gravity="center"
+                                android:background="@drawable/bg_idle_circle" />
+
+                            <ImageView
+                                android:id="@+id/ivMicIcon"
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:src="@drawable/ic_mic" />
+                        </FrameLayout>
+
+                        <TextView
+                            android:id="@+id/tvRecordingStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="대기 중"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="#8899BB"
+                            android:letterSpacing="0.05" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="최대 48시간 자동 보관"
+                        android:textSize="11sp"
+                        android:textColor="#556688" />
+                </LinearLayout>
+
+                <!-- 버퍼 시간 -->
                 <TextView
                     android:id="@+id/tvBufferStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="보호 중: 0분"
-                    android:textSize="32sp"
+                    android:text="녹음 대기 중"
+                    android:textSize="36sp"
                     android:textStyle="bold"
                     android:textColor="#FFFFFF"
-                    android:layout_marginBottom="4dp" />
+                    android:letterSpacing="-0.03"
+                    android:layout_marginBottom="16dp" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="48시간 후 자동 삭제"
-                    android:textSize="12sp"
-                    android:textColor="#444466" />
+                <!-- 녹음 시작/중지 버튼 -->
+                <Button
+                    android:id="@+id/btnToggleRecording"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="▶  SafeBuffer 시작"
+                    android:textSize="14sp"
+                    android:textAllCaps="false"
+                    android:textColor="#A0B8FF"
+                    android:backgroundTint="#1A2240"
+                    android:layout_marginTop="0dp" />
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>
-
-        <!-- ── 핵심 액션: 대화 내용 확인 ── -->
-        <Button
-            android:id="@+id/btnViewTranscript"
-            android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:text="🎙  대화 내용 확인"
-            android:textSize="17sp"
-            android:textStyle="bold"
-            android:textAllCaps="false"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#B71C1C"
-            android:layout_marginBottom="10dp"
-            android:visibility="gone" />
-
-        <!-- ── 시작/중지 ── -->
-        <Button
-            android:id="@+id/btnToggleRecording"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="▶  SafeBuffer 시작"
-            android:textSize="16sp"
-            android:textAllCaps="false"
-            android:textColor="#AACCFF"
-            android:backgroundTint="#1A2A4A"
-            android:layout_marginBottom="16dp" />
 
         <!-- ── 구간 잠금 패널 ── -->
         <androidx.cardview.widget.CardView
@@ -176,82 +172,374 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
-            app:cardBackgroundColor="#12121E"
-            app:cardCornerRadius="16dp"
+            app:cardBackgroundColor="#13131E"
+            app:cardCornerRadius="18dp"
             app:cardElevation="0dp"
-            android:visibility="gone">
+            android:visibility="visible">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="18dp">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="빠른 잠금"
-                    android:textSize="13sp"
+                    android:text="저장 구간 선택"
+                    android:textSize="14sp"
                     android:textStyle="bold"
-                    android:textColor="#5566AA"
-                    android:letterSpacing="0.1"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="길이를 고르고 → 스크롤로 위치를 맞추고 → 들어본 뒤 저장하세요"
+                    android:textSize="11sp"
+                    android:textColor="#556688"
+                    android:layout_marginBottom="14dp" />
+
+                <!-- 표시 범위 — 파형에 몇 시간을 담을지 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="10dp">
+
+                    <Button android:id="@+id/btnRange1h"
+                        android:layout_width="0dp" android:layout_weight="1"
+                        android:layout_height="46dp" android:minWidth="0dp"
+                        android:text="1시간" android:textSize="13sp"
+                        android:textAllCaps="false"
+                        android:layout_marginEnd="6dp" />
+
+                    <Button android:id="@+id/btnRange1d"
+                        android:layout_width="0dp" android:layout_weight="1"
+                        android:layout_height="46dp" android:minWidth="0dp"
+                        android:text="1일" android:textSize="13sp"
+                        android:textAllCaps="false"
+                        android:layout_marginEnd="6dp" />
+
+                    <Button android:id="@+id/btnRangeAll"
+                        android:layout_width="0dp" android:layout_weight="1"
+                        android:layout_height="46dp" android:minWidth="0dp"
+                        android:text="전체" android:textSize="13sp"
+                        android:textAllCaps="false" />
+                </LinearLayout>
+
+                <!-- 파형에서 직접 구간 자르기. 왼쪽=과거, 오른쪽=지금 -->
+                <com.safebuffer.app.ui.widget.BufferTimelineView
+                    android:id="@+id/timelineView"
+                    android:layout_width="match_parent"
+                    android:layout_height="64dp"
                     android:layout_marginBottom="2dp" />
 
-                <TextView
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="대화 확인 없이 지금부터 과거 구간을 즉시 보호"
-                    android:textSize="12sp"
-                    android:textColor="#444466"
-                    android:layout_marginBottom="16dp" />
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="6dp">
 
-                <com.google.android.material.slider.Slider
-                    android:id="@+id/sliderHoursBack"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    app:labelBehavior="gone"
-                    app:thumbColor="#5577CC"
-                    app:trackColorActive="#5577CC"
-                    app:trackColorInactive="#2A2A3A" />
+                    <TextView
+                        android:id="@+id/tvTimelineStart"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="1시간 전"
+                        android:textSize="10sp"
+                        android:textColor="#556688" />
 
+                    <TextView
+                        android:id="@+id/tvTimelineEnd"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="지금"
+                        android:gravity="end"
+                        android:textSize="10sp"
+                        android:textColor="#818CF8" />
+                </LinearLayout>
+
+                <!-- 기간 (굵게) -->
                 <TextView
                     android:id="@+id/tvSliderLabel"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="2시간 전"
-                    android:textSize="22sp"
+                    android:textSize="20sp"
                     android:textStyle="bold"
-                    android:textColor="#7788EE"
+                    android:textColor="#818CF8"
                     android:gravity="center"
-                    android:layout_marginBottom="16dp" />
+                    android:layout_marginBottom="2dp" />
+
+                <!-- 실제 시각 (작게) -->
+                <TextView
+                    android:id="@+id/tvSliderTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="13sp"
+                    android:textColor="#6B7ECC"
+                    android:gravity="center"
+                    android:layout_marginBottom="14dp" />
+
+                <!-- 미리듣기 — 저장 전에 이 구간이 맞는지 확인 -->
+                <Button
+                    android:id="@+id/btnPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:includeFontPadding="true"
+                    android:gravity="center"
+                    android:text="▶  이 구간 들어보기"
+                    android:textSize="14sp"
+                    android:textAllCaps="false"
+                    android:textColor="#C4C4D4"
+                    android:backgroundTint="#22223A"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/tvPreviewStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="12sp"
+                    android:textColor="#6B7ECC"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    android:layout_marginBottom="10dp" />
 
                 <Button
                     android:id="@+id/btnLock"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
-                    android:text="🔒  이 구간 잠금"
-                    android:textSize="15sp"
+                    android:text="저장"
+                    android:textSize="14sp"
                     android:textStyle="bold"
                     android:textAllCaps="false"
                     android:textColor="#FFFFFF"
-                    android:backgroundTint="#1E3A5F" />
+                    android:backgroundTint="#6366F1" />
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- ── 잠긴 증거 버튼 ── -->
-        <Button
+        <!-- ── 잠긴 증거 ── -->
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/tvLockedCount"
             android:layout_width="match_parent"
-            android:layout_height="58dp"
-            android:text="🔒  잠긴 증거: 0개 구간"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textAllCaps="false"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#1B3A2A"
-            android:layout_marginBottom="24dp" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            app:cardBackgroundColor="#1A1028"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="0dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="14dp">
+
+                <LinearLayout
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:gravity="center"
+                    android:background="#22163A"
+                    android:layout_marginEnd="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🔐"
+                        android:textSize="18sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="녹음 확인하기"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="#E8E0FF" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="저장한 녹음 듣기 · 공유 · 삭제"
+                        android:textSize="12sp"
+                        android:textColor="#8B6AAA" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvLockedCountBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0개 ›"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="#A78BFA"
+                    android:background="#2A1A4A"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+        <!-- ── 대화 내용 확인 ── -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            app:cardBackgroundColor="#0F1A2E"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="0dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:id="@+id/btnViewTranscript">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="14dp">
+
+                <LinearLayout
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:gravity="center"
+                    android:background="#162340"
+                    android:layout_marginEnd="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🔍"
+                        android:textSize="18sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="AI 대화 기록 만들기"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="#E0EEFF" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="구간을 골라 녹음을 글로 옮깁니다"
+                        android:textSize="12sp"
+                        android:textColor="#6A9ACC" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/btnTranscriptArchive"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:text="만들기 ›"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="#60A5FA"
+                    android:background="#1E3A5F"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ── 보관된 대화── -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardTranscriptArchive"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            app:cardBackgroundColor="#0F1A2E"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="0dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="14dp">
+
+                <LinearLayout
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:gravity="center"
+                    android:background="#162340"
+                    android:layout_marginEnd="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📄"
+                        android:textSize="18sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="보관된 대화"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="#E0EEFF" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="만들어둔 기록 · PDF · Word 내보내기"
+                        android:textSize="12sp"
+                        android:textColor="#6A9ACC" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvTranscriptCountBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0개 ›"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="#60A5FA"
+                    android:background="#16233F"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
 
         <!-- ── 법적 고지 ── -->
         <LinearLayout
@@ -263,25 +551,34 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="✓  녹음은 기기 내부에만 저장 — 외부 전송 없음"
-                android:textSize="11sp"
-                android:textColor="#333355"
-                android:layout_marginBottom="4dp" />
+                android:text="·  모든 파일은 이 기기에만 저장됩니다"
+                android:textSize="12sp"
+                android:textColor="#556677"
+                android:layout_marginBottom="5dp" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="✓  잠금하지 않은 녹음은 48시간 후 자동 삭제"
-                android:textSize="11sp"
-                android:textColor="#333355"
-                android:layout_marginBottom="4dp" />
+                android:text="·  저장하지 않은 녹음은 48시간 후 자동으로 삭제됩니다"
+                android:textSize="12sp"
+                android:textColor="#556677"
+                android:layout_marginBottom="5dp" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="✓  본인 참여 대화 녹음은 한국 법상 합법"
+                android:text="·  본인이 참여한 대화 녹음은 합법입니다"
+                android:textSize="12sp"
+                android:textColor="#556677"
+                android:layout_marginBottom="10dp" />
+
+            <TextView
+                android:id="@+id/tvBuildInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="—"
                 android:textSize="11sp"
-                android:textColor="#333355" />
+                android:textColor="#3F4C5C" />
 
         </LinearLayout>
 

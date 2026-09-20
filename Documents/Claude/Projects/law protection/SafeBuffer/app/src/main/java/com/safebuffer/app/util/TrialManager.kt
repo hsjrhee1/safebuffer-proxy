@@ -7,7 +7,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * 3일 무료 체험 관리
+ * 14일 무료 체험 관리
  *
  * - 첫 실행 시 타임스탬프 저장
  * - 남은 일수 계산 (소수점 올림)
@@ -15,12 +15,13 @@ import javax.inject.Singleton
  */
 @Singleton
 class TrialManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val billingManager: BillingManager
 ) {
     companion object {
         private const val PREFS_NAME = "safebuffer_trial"
         private const val KEY_FIRST_LAUNCH = "first_launch_ms"
-        private const val TRIAL_DAYS = 3L
+        private const val TRIAL_DAYS = 14L
         private val TRIAL_MS = TRIAL_DAYS * 24 * 60 * 60 * 1000L
     }
 
@@ -34,8 +35,12 @@ class TrialManager @Inject constructor(
         }
     }
 
-    /** 체험 만료 여부 */
+    /** Premium 구독 중 여부 */
+    fun isPurchased(): Boolean = billingManager.isPremium.value
+
+    /** 체험 만료 여부 — 구매 완료 시 항상 false */
     fun isExpired(): Boolean {
+        if (isPurchased()) return false
         val first = prefs.getLong(KEY_FIRST_LAUNCH, 0L)
         if (first == 0L) return false  // 초기화 전 — 만료 아님
         return System.currentTimeMillis() - first > TRIAL_MS

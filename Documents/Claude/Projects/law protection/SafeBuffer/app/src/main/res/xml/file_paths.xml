@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <external-files-path name="reports" path="reports/" />
+    <!-- 내부 저장소 (filesDir) — PDF/DOCX 리포트, 청크 오디오 -->
+    <files-path name="reports" path="reports/" />
     <files-path name="chunks" path="chunks/" />
+    <!-- 외부 앱 저장소 (getExternalFilesDir) — ZIP 백업 -->
+    <external-files-path name="backups" path="backups/" />
 </paths>

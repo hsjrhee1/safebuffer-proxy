@@ -1,0 +1,18 @@
+# 서명·비밀 정보 (절대 커밋 금지)
+keystore.properties
+*.jks
+*.keystore
+
+# Android / Gradle
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build/
+/captures/
+app/build/
+build/
+
+# Kotlin
+.kotlin/

@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/settingsRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:clipToPadding="false"
     android:background="#0A0A10">
 
     <LinearLayout
@@ -57,11 +59,91 @@
                 android:padding="20dp">
 
                 <TextView
+                    android:id="@+id/tvTrialStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="🎁  무료 체험"
+                    android:text="요금 안내"
                     android:textSize="13sp"
                     android:textColor="#5566AA"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.08"
+                    android:layout_marginBottom="14dp" />
+
+                <!-- 무료 -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="무료"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="#4ADE80"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="48시간 자동 녹음 · 듣기 · 구간 저장 · 위변조 확인 · 녹음 증명서"
+                    android:textSize="13sp"
+                    android:lineSpacingExtra="3dp"
+                    android:textColor="#AAB4C8"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- 정식 버전 -->
+                <TextView
+                    android:id="@+id/tvTrialDays"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="정식 버전 · 5,500원 (한 번만)"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="#A0B8FF"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="AI 대화 기록 만들기(1시간 포함) · PDF·Word 문서 · 서버 시각 인증"
+                    android:textSize="13sp"
+                    android:lineSpacingExtra="3dp"
+                    android:textColor="#AAB4C8"
+                    android:layout_marginBottom="16dp" />
+
+                <Button
+                    android:id="@+id/btnUpgrade"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:text="정식 버전 구매 (5,500원)"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textAllCaps="false"
+                    android:textColor="#FFFFFF"
+                    android:backgroundTint="#2A4A8A" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- ── STT 크레딧 카드 (Premium 전용) ── -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardSttCredit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="#0E1A2A"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="AI 대화 기록 시간"
+                    android:textSize="13sp"
+                    android:textColor="#3388CC"
                     android:textStyle="bold"
                     android:letterSpacing="0.08"
                     android:layout_marginBottom="10dp" />
@@ -74,35 +156,42 @@
                     android:layout_marginBottom="12dp">
 
                     <TextView
-                        android:id="@+id/tvTrialDays"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="D-3"
-                        android:textSize="36sp"
-                        android:textStyle="bold"
-                        android:textColor="#FFFFFF" />
+                        android:text="남은 시간"
+                        android:textSize="14sp"
+                        android:textColor="#888899" />
 
                     <TextView
-                        android:id="@+id/tvTrialStatus"
+                        android:id="@+id/tvSttCreditBalance"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="남음"
+                        android:text="없음"
                         android:textSize="14sp"
-                        android:textColor="#888899"
-                        android:layout_marginStart="8dp" />
+                        android:textStyle="bold"
+                        android:textColor="#66AAFF" />
                 </LinearLayout>
 
-                <Button
-                    android:id="@+id/btnUpgrade"
+                <TextView
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:text="정식 버전 구매"
-                    android:textSize="15sp"
+                    android:layout_height="wrap_content"
+                    android:text="정식 버전에 1시간이 포함되어 있습니다. 더 필요하면 5시간(12,900원)을 추가로 구매할 수 있습니다.\n\nAI가 녹음을 글로 옮긴 만큼 시간이 차감됩니다."
+                    android:textSize="12sp"
+                    android:lineSpacingExtra="2dp"
+                    android:textColor="#7788AA"
+                    android:layout_marginBottom="14dp" />
+
+                <Button
+                    android:id="@+id/btnBuySttCredit"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="AI 대화 기록 시간 구매"
+                    android:textSize="14sp"
                     android:textStyle="bold"
                     android:textAllCaps="false"
                     android:textColor="#FFFFFF"
-                    android:backgroundTint="#2A4A8A" />
+                    android:backgroundTint="#1A3A5A" />
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>
@@ -151,7 +240,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="3  사건 발생 후 '대화 내용 확인'으로 내용을 확인하세요"
+                    android:text="3  구간을 선택하여 듣기 밎 저장이 가능합니다"
                     android:textSize="14sp"
                     android:textColor="#CCCCDD"
                     android:layout_marginBottom="10dp" />
@@ -159,7 +248,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="4  증거로 보관할 구간을 선택해 '잠금'하세요"
+                    android:text="4  '저장'을 누르면 48시간이 지나도 삭제되지 않습니다"
                     android:textSize="14sp"
                     android:textColor="#CCCCDD"
                     android:layout_marginBottom="10dp" />
@@ -167,9 +256,18 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="5  잠긴 증거는 PDF로 내보낼 수 있습니다"
+                    android:text="5  'AI 대화 기록 만들기에서는 대화를 글로 작성해 PDF·Word로 내보낼 수 있습니다 (정식 버전)"
                     android:textSize="14sp"
                     android:textColor="#CCCCDD" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="※ 마이크가 항시 가동되므로 베터리 사용량이 증가됩니다.(1일 5~10% 증가)"
+                    android:textSize="13sp"
+                    android:lineSpacingExtra="2dp"
+                    android:textColor="#8899AA"
+                    android:layout_marginTop="14dp" />
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>
@@ -254,7 +352,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="배터리 최적화가 켜져 있으면 화면을 끈 후 녹음이 중단될 수 있습니다. 증거를 놓치지 않으려면 이 앱을 배터리 최적화에서 제외하세요."
+                    android:text="이 앱은 마이크를 계속 켜 두기 때문에 배터리를 더 씁니다. 하루 종일 켜 두면 기기에 따라 대략 5~10%가 추가로 소모됩니다.\n\n배터리 최적화가 켜져 있으면 화면을 끈 뒤 녹음이 끊길 수 있습니다. 증거를 놓치지 않으려면 이 앱을 배터리 최적화에서 제외하세요. 필요할 때만 앱을 켜서 쓰면 소모를 줄일 수 있습니다."
                     android:textSize="13sp"
                     android:textColor="#887755"
                     android:lineSpacingExtra="3dp"
@@ -270,6 +368,66 @@
                     android:textAllCaps="false"
                     android:textColor="#FFCC44"
                     android:backgroundTint="#2A2010" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- ── 증거 백업 카드 ── -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="#0E1A0E"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="💾  증거 백업 / 복원"
+                    android:textSize="13sp"
+                    android:textColor="#44AA66"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.08"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="앱 삭제·재설치·폰 교체 전에 반드시 백업하세요. ZIP 파일 하나로 모든 보호된 녹음을 내보내고, 재설치 후 그대로 복원할 수 있습니다."
+                    android:textSize="13sp"
+                    android:textColor="#446644"
+                    android:lineSpacingExtra="3dp"
+                    android:layout_marginBottom="16dp" />
+
+                <Button
+                    android:id="@+id/btnExportBackup"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:text="📤  전체 백업 (ZIP)"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textAllCaps="false"
+                    android:textColor="#FFFFFF"
+                    android:backgroundTint="#1A4A2A"
+                    android:layout_marginBottom="8dp" />
+
+                <Button
+                    android:id="@+id/btnImportBackup"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="📥  백업 복원 (ZIP)"
+                    android:textSize="14sp"
+                    android:textAllCaps="false"
+                    android:textColor="#88CCAA"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:backgroundTint="#0E1A0E" />
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>
@@ -302,7 +460,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="모든 녹음 파일과 잠긴 증거를 삭제합니다. 테스트 후 초기화할 때 사용하세요."
+                    android:text="모든 녹음 파일과 보관된 녹음을 삭제합니다. 테스트 후 초기화할 때 사용하세요."
                     android:textSize="13sp"
                     android:textColor="#886666"
                     android:lineSpacingExtra="3dp"
@@ -362,9 +520,30 @@
                         android:id="@+id/tvVersion"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="1.0.0"
+                        android:text="—"
                         android:textSize="14sp"
                         android:textColor="#CCCCDD" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="홈페이지"
+                        android:textSize="14sp"
+                        android:textColor="#888899" />
+                    <TextView
+                        android:id="@+id/tvWebsite"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="safebuffer.app"
+                        android:textSize="14sp"
+                        android:textColor="#5577CC" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -382,7 +561,7 @@
                         android:id="@+id/tvContact"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="support@buddi.co.kr"
+                        android:text="support@safebuffer.app"
                         android:textSize="14sp"
                         android:textColor="#5577CC" />
                 </LinearLayout>

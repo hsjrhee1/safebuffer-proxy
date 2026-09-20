@@ -23,7 +23,12 @@ object AppModule {
             ChunkDatabase::class.java,
             ChunkDatabase.DATABASE_NAME
         )
-        .addMigrations(ChunkDatabase.MIGRATION_1_2)
+        .addMigrations(
+            ChunkDatabase.MIGRATION_1_2,
+            ChunkDatabase.MIGRATION_2_3,
+            ChunkDatabase.MIGRATION_3_4,
+            ChunkDatabase.MIGRATION_4_5
+        )
         .build()
 
     @Provides

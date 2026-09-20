@@ -10,11 +10,19 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="확인할 대화 구간"
+        android:text="대화 기록 구간 선택"
         android:textSize="18sp"
         android:textStyle="bold"
         android:textColor="#FFFFFF"
-        android:layout_marginBottom="20dp" />
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="이 구간의 녹음을 AI가 글로 옮깁니다. 자정을 넘는 구간도 됩니다."
+        android:textSize="11sp"
+        android:textColor="#5566AA"
+        android:layout_marginBottom="16dp" />
 
     <!-- 날짜 선택 칩 -->
     <com.google.android.material.chip.ChipGroup
@@ -31,10 +39,10 @@
             android:layout_height="wrap_content"
             android:text="오늘"
             style="@style/Widget.MaterialComponents.Chip.Choice"
-            android:textColor="#FFFFFF"
-            app:chipBackgroundColor="@android:color/transparent"
-            app:chipStrokeColor="#5577CC"
-            app:chipStrokeWidth="1dp"
+            android:textColor="@color/chip_text_color"
+            app:chipBackgroundColor="@color/chip_bg_color"
+            app:chipStrokeColor="#6366F1"
+            app:chipStrokeWidth="1.5dp"
             android:checked="true" />
 
         <com.google.android.material.chip.Chip
@@ -43,10 +51,10 @@
             android:layout_height="wrap_content"
             android:text="어제"
             style="@style/Widget.MaterialComponents.Chip.Choice"
-            android:textColor="#FFFFFF"
-            app:chipBackgroundColor="@android:color/transparent"
-            app:chipStrokeColor="#5577CC"
-            app:chipStrokeWidth="1dp" />
+            android:textColor="@color/chip_text_color"
+            app:chipBackgroundColor="@color/chip_bg_color"
+            app:chipStrokeColor="#6366F1"
+            app:chipStrokeWidth="1.5dp" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chipDayBefore"
@@ -54,10 +62,10 @@
             android:layout_height="wrap_content"
             android:text="그제"
             style="@style/Widget.MaterialComponents.Chip.Choice"
-            android:textColor="#FFFFFF"
-            app:chipBackgroundColor="@android:color/transparent"
-            app:chipStrokeColor="#5577CC"
-            app:chipStrokeWidth="1dp" />
+            android:textColor="@color/chip_text_color"
+            app:chipBackgroundColor="@color/chip_bg_color"
+            app:chipStrokeColor="#6366F1"
+            app:chipStrokeWidth="1.5dp" />
 
     </com.google.android.material.chip.ChipGroup>
 
@@ -140,7 +148,7 @@
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_weight="2"
-            android:text="대화 확인"
+            android:text="선택"
             android:textAllCaps="false"
             android:textColor="#FFFFFF"
             android:backgroundTint="#2A4A8A" />
