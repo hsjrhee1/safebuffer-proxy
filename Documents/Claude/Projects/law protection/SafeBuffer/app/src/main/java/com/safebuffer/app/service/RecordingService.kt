@@ -552,6 +552,19 @@ class RecordingService : Service() {
                 try {
                     if (!shouldRecord) continue
 
+                    // A recorder can report an error while its object remains
+                    // non-null. Treat the authoritative recording state as
+                    // the health signal too, so cooldown cannot strand that
+                    // failed instance until the 10-minute rotation boundary.
+                    if (!isRunning) {
+                        android.util.Log.w(
+                            "RecordingService",
+                            "shouldRecord=true but isRunning=false — recovery attempt"
+                        )
+                        withContext(Dispatchers.Main) { restartChunk() }
+                        continue
+                    }
+
                     // ① 녹음기가 없으면 재시작
                     if (mediaRecorder == null) {
                         android.util.Log.w("RecordingService", "mediaRecorder null 감지 — 재시작")
@@ -594,7 +607,12 @@ class RecordingService : Service() {
         //   가드가 없으면 에러 리스너 → 재시작 → 에러 리스너 … 무한 루프가 된다.
         val now0 = System.currentTimeMillis()
         if (now0 - lastRestartMs < RESTART_COOLDOWN_MS) {
-            android.util.Log.w("RecordingService", "재시작 쿨다운 중 — 건너뜀")
+            val remainingMs = RESTART_COOLDOWN_MS - (now0 - lastRestartMs)
+            android.util.Log.w(
+                "RecordingService",
+                "재시작 쿨다운 중 — health check에서 재시도 예정 (${remainingMs}ms 남음)"
+            )
+            notifyRecordingState(ok = false)
             return
         }
         lastRestartMs = now0

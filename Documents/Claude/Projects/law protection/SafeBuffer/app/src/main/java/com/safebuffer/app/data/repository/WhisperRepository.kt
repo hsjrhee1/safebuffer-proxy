@@ -1,5 +1,11 @@
 package com.safebuffer.app.data.repository
 
+import android.content.Context
+import android.media.MediaCodec
+import android.media.MediaExtractor
+import android.media.MediaFormat
+import android.media.MediaMuxer
+import dagger.hilt.android.qualifiers.ApplicationContext
 import com.safebuffer.app.data.local.ChunkDao
 import com.safebuffer.app.data.model.TranscriptSegment
 import com.safebuffer.app.data.remote.WhisperApiService
@@ -10,6 +16,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
+import java.nio.ByteBuffer
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +24,7 @@ import kotlinx.coroutines.withContext
 
 @Singleton
 class WhisperRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val api: WhisperApiService,
     private val chunkDao: ChunkDao
 ) {
@@ -70,6 +78,7 @@ class WhisperRepository @Inject constructor(
         toMs: Long
     ): Result<List<TranscriptSegment>> {
         return try {
+            require(toMs > fromMs) { "전사 구간의 종료 시각은 시작 시각보다 뒤여야 합니다." }
             val chunks = chunkDao.getChunksInRange(fromMs, toMs)
 
             if (chunks.isEmpty()) {
@@ -83,7 +92,17 @@ class WhisperRepository @Inject constructor(
             var segmentIdOffset = 0
 
             for (chunk in chunks) {
-                val cached = chunk.transcription
+                val overlapStartMs = maxOf(fromMs, chunk.startTimeMs)
+                val overlapEndMs = minOf(toMs, chunk.endTimeMs)
+                if (overlapEndMs <= overlapStartMs) continue
+
+                // Full-chunk cache is valid only when this request consumes the
+                // whole physical chunk. Boundary requests must be transcribed
+                // from a temporary trim so audio outside the requested range is
+                // neither uploaded nor returned from an old full-chunk cache.
+                val isPartialChunk = overlapStartMs > chunk.startTimeMs ||
+                    overlapEndMs < chunk.endTimeMs
+                val cached = if (isPartialChunk) null else chunk.transcription
 
                 // ★ 캐시 정책 ────────────────────────────────────────────────
                 //  MARKER_SILENT : 로컬에서 무음으로 확인됨 → 재시도 불필요, 캐시 신뢰
@@ -100,33 +119,151 @@ class WhisperRepository @Inject constructor(
                 val segments = if (usableCache != null) {
                     usableCache.mapIndexed { i, seg -> seg.copy(id = segmentIdOffset + i) }
                 } else {
-                    val file = File(chunk.filePath)
-                    if (!file.exists()) continue
+                    val originalFile = File(chunk.filePath)
+                    if (!originalFile.exists()) continue
 
-                    // ★ 침묵 구간은 Whisper 호출 건너뜀 — hallucination 방지
-                    // IO 스레드에서 실행 (MediaCodec 디코딩 → Main thread 블로킹 방지)
-                    if (withContext(Dispatchers.IO) { isSilent(file) }) {
-                        chunkDao.updateTranscription(chunk.id, MARKER_SILENT)
-                        continue
-                    }
+                    var temporaryFile: File? = null
+                    try {
+                        val transcriptionFile = if (isPartialChunk) {
+                            withContext(Dispatchers.IO) {
+                                createTrimmedAudioSegment(
+                                    originalFile,
+                                    overlapStartMs - chunk.startTimeMs,
+                                    overlapEndMs - chunk.startTimeMs
+                                ).also { temporaryFile = it }
+                            }
+                        } else {
+                            originalFile
+                        }
 
-                    val result = transcribeSingleChunk(file, chunk.startTimeMs, segmentIdOffset)
-                    // ★ 결과가 있을 때만 캐싱한다.
-                    //   빈 결과는 서버 일시 오류·필터 과잉일 수 있으므로 캐싱하면 안 된다.
-                    //   (이것을 캐싱한 것이 "한 번 비면 영원히 비는" 버그의 원인이었다)
-                    if (result.isNotEmpty()) {
-                        chunkDao.updateTranscription(chunk.id, serializeSegmentsJson(result))
+                        // Silence scan and Whisper upload now see only the
+                        // requested audio for boundary chunks.
+                        if (withContext(Dispatchers.IO) { isSilent(transcriptionFile) }) {
+                            if (!isPartialChunk) {
+                                chunkDao.updateTranscription(chunk.id, MARKER_SILENT)
+                            }
+                            continue
+                        }
+
+                        val result = transcribeSingleChunk(
+                            transcriptionFile,
+                            overlapStartMs,
+                            segmentIdOffset
+                        )
+                        // A range-specific transcription is not a reusable
+                        // physical-chunk cache. Only full-chunk results persist.
+                        if (!isPartialChunk && result.isNotEmpty()) {
+                            chunkDao.updateTranscription(chunk.id, serializeSegmentsJson(result))
+                        }
+                        result
+                    } finally {
+                        temporaryFile?.delete()
                     }
-                    result
                 }
 
                 allSegments.addAll(segments)
                 segmentIdOffset += segments.size
             }
 
-            Result.success(allSegments.sortedBy { it.absoluteStartMs })
+            val inRequestedRange = allSegments
+                .filter { it.absoluteStartMs < toMs && it.absoluteEndMs > fromMs }
+                .sortedBy { it.absoluteStartMs }
+                .mapIndexed { index, segment ->
+                    segment.copy(
+                        id = index,
+                        absoluteStartMs = maxOf(segment.absoluteStartMs, fromMs),
+                        absoluteEndMs = minOf(segment.absoluteEndMs, toMs)
+                    )
+                }
+            Result.success(inRequestedRange)
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    /**
+     * Remux only AAC samples whose timestamps fall inside a boundary chunk's
+     * requested interval. The source recording is never modified; the caller
+     * owns and deletes the temporary file after transcription.
+     */
+    private fun createTrimmedAudioSegment(
+        sourceFile: File,
+        startOffsetMs: Long,
+        endOffsetMs: Long
+    ): File {
+        require(startOffsetMs >= 0L && endOffsetMs > startOffsetMs) {
+            "잘못된 임시 전사 오디오 범위: $startOffsetMs..$endOffsetMs"
+        }
+
+        val outputFile = File.createTempFile("safebuffer_stt_", ".m4a", context.cacheDir)
+        val extractor = MediaExtractor()
+        var muxer: MediaMuxer? = null
+        var wroteSamples = false
+        var succeeded = false
+        try {
+            extractor.setDataSource(sourceFile.absolutePath)
+            val sourceTrack = (0 until extractor.trackCount).firstOrNull { track ->
+                extractor.getTrackFormat(track).getString(MediaFormat.KEY_MIME)
+                    ?.startsWith("audio/") == true
+            } ?: throw IllegalArgumentException("오디오 트랙이 없는 녹음 파일입니다: ${sourceFile.name}")
+
+            val sourceFormat = extractor.getTrackFormat(sourceTrack)
+            extractor.selectTrack(sourceTrack)
+            val mediaMuxer = MediaMuxer(
+                outputFile.absolutePath,
+                MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
+            )
+            muxer = mediaMuxer
+            val destinationTrack = mediaMuxer.addTrack(sourceFormat)
+            mediaMuxer.start()
+
+            val startUs = startOffsetMs * 1_000L
+            val endUs = endOffsetMs * 1_000L
+            val sampleRate = sourceFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)
+            check(sampleRate > 0) { "오디오 샘플레이트가 올바르지 않습니다: $sampleRate" }
+            // MediaRecorder's AAC-LC chunks use 1024-sample frames. Drop a
+            // frame that straddles the requested end instead of uploading any
+            // encoded audio beyond the user's selected boundary.
+            val aacFrameDurationUs = 1_024_000_000L / sampleRate
+            extractor.seekTo(startUs, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
+
+            val bufferSize = if (sourceFormat.containsKey(MediaFormat.KEY_MAX_INPUT_SIZE)) {
+                sourceFormat.getInteger(MediaFormat.KEY_MAX_INPUT_SIZE).coerceAtLeast(64 * 1024)
+            } else {
+                1024 * 1024
+            }
+            val buffer = ByteBuffer.allocate(bufferSize)
+            val bufferInfo = MediaCodec.BufferInfo()
+            while (true) {
+                buffer.clear()
+                val sampleSize = extractor.readSampleData(buffer, 0)
+                if (sampleSize < 0) break
+                val sampleTimeUs = extractor.sampleTime
+                if (sampleTimeUs >= endUs) break
+
+                if (sampleTimeUs >= startUs && sampleTimeUs + aacFrameDurationUs <= endUs) {
+                    bufferInfo.set(
+                        0,
+                        sampleSize,
+                        sampleTimeUs - startUs,
+                        extractor.sampleFlags
+                    )
+                    mediaMuxer.writeSampleData(destinationTrack, buffer, bufferInfo)
+                    wroteSamples = true
+                }
+                if (!extractor.advance()) break
+            }
+            check(wroteSamples) { "선택한 구간에 전사할 오디오 샘플이 없습니다." }
+            mediaMuxer.stop()
+            succeeded = true
+            return outputFile
+        } finally {
+            if (!succeeded) {
+                try { muxer?.stop() } catch (_: Exception) {}
+            }
+            try { muxer?.release() } catch (_: Exception) {}
+            try { extractor.release() } catch (_: Exception) {}
+            if (!succeeded) outputFile.delete()
         }
     }
 

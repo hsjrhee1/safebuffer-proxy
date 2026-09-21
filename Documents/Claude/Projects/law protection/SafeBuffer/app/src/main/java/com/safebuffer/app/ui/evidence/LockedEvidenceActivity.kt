@@ -60,7 +60,10 @@ class LockedEvidenceActivity : AppCompatActivity() {
             if (total > 0L) getWaveformView(playingPosition)?.setProgress(
                 ((playingAtMs - playbackLogicalStartMs).toFloat() / total).coerceIn(0f, 1f)
             )
-            progressHandler.postDelayed(this, 80)
+            // Poll normally at 80 ms, but schedule the terminal check at the
+            // logical boundary instead of allowing a full extra poll interval.
+            val untilLogicalEndMs = (playbackLogicalEndMs - playingAtMs).coerceAtLeast(1L)
+            progressHandler.postDelayed(this, minOf(80L, untilLogicalEndMs))
         }
     }
 
@@ -457,10 +460,24 @@ class LockedEvidenceActivity : AppCompatActivity() {
     }
 
     private fun finishLogicalPlayback(position: Int) {
+        if (position != playingPosition) return
+
+        // A physical chunk may extend beyond the user's logical saved range.
+        // Detach callbacks before stopping so the old player cannot advance to
+        // another physical chunk or mutate the UI after playback has finished.
+        progressHandler.removeCallbacks(progressRunnable)
+        val finishedPlayer = mediaPlayer
+        mediaPlayer = null
+        if (finishedPlayer != null) {
+            try { finishedPlayer.setOnPreparedListener(null) } catch (_: Exception) {}
+            try { finishedPlayer.setOnCompletionListener(null) } catch (_: Exception) {}
+            try { finishedPlayer.setOnErrorListener(null) } catch (_: Exception) {}
+            try { if (finishedPlayer.isPlaying) finishedPlayer.stop() } catch (_: Exception) {}
+            try { finishedPlayer.release() } catch (_: Exception) {}
+        }
+
         getPlayButton(position)?.text = "▶  재생"
         getWaveformView(position)?.setProgress(0f)
-        progressHandler.removeCallbacks(progressRunnable)
-        mediaPlayer = null
         playbackChunks = emptyList()
         playbackChunkIndex = 0
         pendingSeekMs = 0
