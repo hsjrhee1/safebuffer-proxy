@@ -5,25 +5,49 @@ const FormData = require('form-data');
 const cors = require('cors');
 const crypto = require('crypto');
 
+// STT 업로드 제한: 파일 1개, 최대 25MB (앱의 10분 청크는 최대 약 7.2MB)
+const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
+// Groq 요청 제한 시간 (앱의 OkHttp readTimeout 120초보다 짧게)
+const GROQ_TIMEOUT_MS = 90 * 1000;
+
 const app = express();
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_UPLOAD_BYTES, files: 1 },
+});
 
 app.use(cors());
 app.use(express.json());
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const STAMP_SECRET = process.env.STAMP_SECRET || 'safebuffer-default-secret';
+const TIMESTAMP_SECRET = process.env.TIMESTAMP_SECRET;
 
 if (!GROQ_API_KEY) {
   console.error('GROQ_API_KEY 환경변수가 없습니다.');
   process.exit(1);
 }
 
+if (!TIMESTAMP_SECRET || !TIMESTAMP_SECRET.trim()) {
+  console.error('TIMESTAMP_SECRET 환경변수가 없습니다. 서버를 시작하지 않습니다.');
+  process.exit(1);
+}
+
+// 업로드 파싱 오류(크기 초과·잘못된 multipart)는 400/413으로 응답하고 프로세스는 유지한다
+function uploadAudio(req, res, next) {
+  upload.single('file')(req, res, (err) => {
+    if (!err) return next();
+    if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ error: '오디오 파일이 너무 큽니다.' });
+    }
+    return res.status(400).json({ error: '업로드 요청이 올바르지 않습니다.' });
+  });
+}
+
 app.get('/', (req, res) => {
   res.json({ status: 'ok', service: 'SafeBuffer Proxy' });
 });
 
-app.post('/api/transcribe', upload.single('file'), async (req, res) => {
+app.post('/api/transcribe', uploadAudio, async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: '오디오 파일이 없습니다.' });
     const form = new FormData();
@@ -32,17 +56,25 @@ app.post('/api/transcribe', upload.single('file'), async (req, res) => {
       contentType: req.file.mimetype || 'audio/mp4',
     });
     form.append('model', 'whisper-large-v3');
-    form.append('language', 'ko');
     form.append('response_format', 'verbose_json');
     const response = await axios.post(
       'https://api.groq.com/openai/v1/audio/transcriptions',
       form,
-      { headers: { Authorization: `Bearer ${GROQ_API_KEY}`, ...form.getHeaders() }, maxBodyLength: Infinity }
+      {
+        headers: { Authorization: `Bearer ${GROQ_API_KEY}`, ...form.getHeaders() },
+        maxBodyLength: MAX_UPLOAD_BYTES + 1024 * 1024,
+        timeout: GROQ_TIMEOUT_MS,
+      }
     );
     res.json(response.data);
   } catch (err) {
-    console.error('Groq 오류:', err.response?.data || err.message);
-    res.status(500).json({ error: err.response?.data || err.message });
+    // 로그에는 상태·원인만 남기고, 클라이언트에는 Groq 응답 원문을 전달하지 않는다
+    console.error(
+      'Groq 오류:',
+      err.response ? `HTTP ${err.response.status}` : (err.code || 'NO_RESPONSE'),
+      err.response?.data?.error?.message || err.message
+    );
+    res.status(500).json({ error: 'STT 처리에 실패했습니다.' });
   }
 });
 
@@ -55,12 +87,23 @@ app.post('/api/stamp', (req, res) => {
     const serverTime = new Date().toISOString();
     const hashList = hashes.join(',');
     const payload = `${token}|${serverTime}|${hashList}`;
-    const sig = crypto.createHmac('sha256', STAMP_SECRET).update(payload).digest('hex');
+    const sig = crypto.createHmac('sha256', TIMESTAMP_SECRET).update(payload).digest('hex');
     console.log(`[STAMP] token=${token} serverTime=${serverTime} deviceTime=${deviceTime || 'N/A'} hashes=${hashList}`);
     res.json({ token, serverTime, hashes, sig });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Stamp 오류:', err.name, err.message);
+    res.status(500).json({ error: '타임스탬프 발급에 실패했습니다.' });
   }
+});
+
+// JSON 파싱 오류 등은 Express 기본 HTML 오류 페이지(stack trace) 대신 일반 JSON으로 응답한다
+app.use((err, req, res, next) => {
+  if (res.headersSent) return next(err);
+  const status = err.status >= 400 && err.status < 500 ? err.status : 500;
+  if (status === 500) console.error('요청 처리 오류:', err.type || err.name);
+  res.status(status).json({
+    error: status === 500 ? '서버 오류가 발생했습니다.' : '요청 형식이 올바르지 않습니다.',
+  });
 });
 
 const PORT = process.env.PORT || 3000;
