@@ -96,6 +96,36 @@ app.post('/api/stamp', (req, res) => {
   }
 });
 
+// TEMP (PHASE 2A-0): Render client IP 실측용. 측정 후 제거한다.
+// IPCHECK_KEY 환경변수가 있을 때만 활성화되며, 측정 값은 서버 로그에 기록하지 않는다.
+const IPCHECK_KEY = process.env.IPCHECK_KEY;
+if (IPCHECK_KEY && IPCHECK_KEY.length >= 32) {
+  const sha256 = (v) => crypto.createHash('sha256').update(String(v)).digest();
+  const expectedKeyHash = sha256(IPCHECK_KEY);
+  app.get('/__ipcheck', (req, res, next) => {
+    const givenKey = req.get('x-ipcheck-key');
+    // key가 없거나 틀리면 라우트가 없는 것과 같은 기본 404로 넘긴다
+    if (!givenKey || !crypto.timingSafeEqual(sha256(givenKey), expectedKeyHash)) return next();
+    const xff = String(req.get('x-forwarded-for') || '')
+      .split(',').map((s) => s.trim()).filter(Boolean);
+    const header = (name) => req.get(name) ?? null;
+    res.set('Cache-Control', 'no-store').json({
+      socketRemoteAddress: req.socket.remoteAddress,
+      xForwardedForCount: xff.length,
+      xForwardedFor: xff,
+      cfConnectingIp: header('cf-connecting-ip'),
+      trueClientIp: header('true-client-ip'),
+      xRealIp: header('x-real-ip'),
+      xForwardedProto: header('x-forwarded-proto'),
+      hasCfRay: req.get('cf-ray') !== undefined,
+      reqIp: req.ip,
+    });
+  });
+  console.log('IPCHECK 임시 endpoint 활성화됨');
+} else if (IPCHECK_KEY) {
+  console.warn('IPCHECK_KEY가 32자 미만이라 임시 endpoint를 활성화하지 않습니다.');
+}
+
 // JSON 파싱 오류 등은 Express 기본 HTML 오류 페이지(stack trace) 대신 일반 JSON으로 응답한다
 app.use((err, req, res, next) => {
   if (res.headersSent) return next(err);
