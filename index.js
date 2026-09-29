@@ -290,12 +290,16 @@ app.post('/api/stamp', (req, res) => {
     const { hashes, deviceTime } = req.body;
     if (!Array.isArray(hashes) || hashes.length === 0)
       return res.status(400).json({ error: 'hashes 배열이 필요합니다.' });
+    if (!hashes.every((h) => typeof h === 'string' && /^[0-9a-f]{64}$/.test(h)))
+      return res.status(400).json({ error: '요청 형식이 올바르지 않습니다.' });
+    if (deviceTime != null && (typeof deviceTime !== 'string' || deviceTime.length > 64 || /[\u0000-\u001f\u007f]/.test(deviceTime)))
+      return res.status(400).json({ error: '요청 형식이 올바르지 않습니다.' });
     const token = crypto.randomUUID();
     const serverTime = new Date().toISOString();
     const hashList = hashes.join(',');
     const payload = `${token}|${serverTime}|${hashList}`;
     const sig = crypto.createHmac('sha256', TIMESTAMP_SECRET).update(payload).digest('hex');
-    console.log(`[STAMP] token=${token} serverTime=${serverTime} deviceTime=${deviceTime || 'N/A'} hashes=${hashList}`);
+    console.log(`[STAMP] token=${token} serverTime=${serverTime} count=${hashes.length}`);
     res.json({ token, serverTime, hashes, sig });
   } catch (err) {
     console.error('Stamp 오류:', err.name, err.message);
